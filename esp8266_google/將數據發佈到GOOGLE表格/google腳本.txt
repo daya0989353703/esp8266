@@ -1,0 +1,93 @@
+// BY: Akshaya Niraula
+// ON: 2016 November 12th.
+// AT: http://www.embedded-lab.com/.....
+ 
+ 
+// Steps are valid as of 2016 November 12th.
+// 0) From Google spreadsheet, Tools &gt; Scriipt Editor...
+// 1) Write your code
+// 2) Save and give a meaningful name
+// 3) Run and make sure "doGet" is selected
+//    You can set a method from Run menu
+// 4) When you run for the first time, it will ask 
+//    for the permission. You must allow it.
+//    Make sure everything is working as it should.
+// 5) From Publish menu &gt; Deploy as Web App...
+//    Select a new version everytime it's published
+//    Type comments next to the version
+//    Execute as: "Me (your email address)"
+//    MUST: Select "Anyone, even anonymous" on "Who has access to this script"
+//    For the first time it will give you some prompt(s), accept it.
+//    You will need the given information (url) later. This doesn't change, ever!
+ 
+// Saving the published URL helps for later.
+// https://script.google.com/macros/s/---Your-Script-ID--Goes-Here---/exec
+// https://script.google.com/macros/s/---Your-Script-ID--Goes-Here---/exec?tag=test&amp;value=-1
+ 
+// This method will be called first or hits first  
+function doGet(e){
+  Logger.log("--- doGet ---");
+ 
+ var tag = "",
+     value = "";
+ 
+  try {
+ 
+    // this helps during debuggin
+    if (e == null){e={}; e.parameters = {tag:"test",value:"-1"};}
+ 
+    tag = e.parameters.tag;
+    value = e.parameters.value;
+ 
+    // save the data to spreadsheet
+    save_data(tag, value);
+ 
+ 
+    return ContentService.createTextOutput("Wrote:\ntag:"+tag+"\nvalue:"+value);//這裡不要有空格
+ 
+  } catch(error) { 
+    Logger.log(error);    
+    return ContentService.createTextOutput("oops...." + error.message 
+                                            + "\n" + new Date() 
+                                            + "\ntag: " + tag +
+                                            + "\nvalue: " + value);
+  }  
+}
+ 
+// Method to save given data to a sheet
+function save_data(tag, value){
+  Logger.log("--- save_data ---"); 
+ 
+ 
+  try {
+    var dateTime = new Date();
+ 
+    // Paste the URL of the Google Sheets starting from https thru /edit
+    // For e.g.: https://docs.google.com/..../edit 
+    var ss = SpreadsheetApp.openByUrl("https://docs.google.com/spreadsheets/d/1IKJeIyeGbheMw63p_hT0rHzjymik9MqS-8P5_UlH63U/edit");
+    var summarySheet = ss.getSheetByName("Summary");
+    var dataLoggerSheet = ss.getSheetByName("DataLogger");
+ 
+ 
+    // 從表數據記錄器獲取最後編輯一行
+    var row = dataLoggerSheet.getLastRow() + 1;
+ 
+ 
+    // 開始填充數據
+    dataLoggerSheet.getRange("A" + row).setValue(row -1); // ID
+    dataLoggerSheet.getRange("B" + row).setValue(dateTime); // dateTime
+    dataLoggerSheet.getRange("C" + row).setValue(tag); // tag
+    dataLoggerSheet.getRange("D" + row).setValue(value); // value
+ 
+ 
+    // 更新匯總表
+    summarySheet.getRange("B1").setValue(dateTime); // Last modified date
+    // summarySheet.getRange("B2").setValue(row - 1); // Count 
+  }
+ 
+  catch(error) {
+    Logger.log(JSON.stringify(error));
+  }
+ 
+  Logger.log("--- save_data end---"); 
+}
